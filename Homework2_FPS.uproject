@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{60C7E5FD-414C-BD3D-CFDF-E295B84C1849}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Homework2_FPS",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
