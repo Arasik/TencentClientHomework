@@ -23,10 +23,11 @@ AHomework2_FPSCharacter::AHomework2_FPSCharacter()
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
-
+	bCanController = true;
 	// Configure character movement
+	
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
@@ -54,8 +55,9 @@ void AHomework2_FPSCharacter::SetupPlayerInputComponent(class UInputComponent* P
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	//PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	//PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AHomework2_FPSCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AHomework2_FPSCharacter::MoveRight);
@@ -69,11 +71,12 @@ void AHomework2_FPSCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AHomework2_FPSCharacter::LookUpAtRate);
 
 	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AHomework2_FPSCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AHomework2_FPSCharacter::TouchStopped);
+	//PlayerInputComponent->BindTouch(IE_Pressed, this, &AHomework2_FPSCharacter::TouchStarted);
+	//PlayerInputComponent->BindTouch(IE_Released, this, &AHomework2_FPSCharacter::TouchStopped);
 
 	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AHomework2_FPSCharacter::OnResetVR);
+	//PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AHomework2_FPSCharacter::OnResetVR);
+
 }
 
 
@@ -84,51 +87,65 @@ void AHomework2_FPSCharacter::OnResetVR()
 
 void AHomework2_FPSCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
+	if (bCanController)
 		Jump();
 }
 
 void AHomework2_FPSCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
+	if (bCanController)
 		StopJumping();
 }
 
 void AHomework2_FPSCharacter::TurnAtRate(float Rate)
 {
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	if (bCanController)
+		// calculate delta for this frame from the rate information
+	{
+		AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	}
 }
 
 void AHomework2_FPSCharacter::LookUpAtRate(float Rate)
 {
-	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	if (bCanController)
+		// calculate delta for this frame from the rate information
+	{
+		AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	}
 }
 
 void AHomework2_FPSCharacter::MoveForward(float Value)
 {
-	if ((Controller != NULL) && (Value != 0.0f))
+	if (bCanController)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		if ((Controller != NULL) && (Value != 0.0f))
+		{
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
+			// get forward vector
+			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			AddMovementInput(Direction, Value);
+		}
 	}
 }
 
 void AHomework2_FPSCharacter::MoveRight(float Value)
 {
-	if ( (Controller != NULL) && (Value != 0.0f) )
+	if (bCanController)
 	{
-		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
-		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		// add movement in that direction
-		AddMovementInput(Direction, Value);
+		if ((Controller != NULL) && (Value != 0.0f))
+		{
+			// find out which way is right
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+			// get right vector 
+			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			// add movement in that direction
+			AddMovementInput(Direction, Value);
+		}
 	}
 }
