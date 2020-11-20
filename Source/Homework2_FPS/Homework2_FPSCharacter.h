@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include "GameFramework/Actor.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Homework2_FPSCharacter.generated.h"
+//DECLARE_LOG_CATEGORY_EXTERN(YourLog, Log, All);
 
 UCLASS(config=Game)
 class AHomework2_FPSCharacter : public ACharacter
@@ -31,6 +33,24 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controller)
 	bool bCanController;
+
+	UFUNCTION(BlueprintCallable, Category = "Targeting")
+	FRotator GetAimOffsets() const;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Transient, Replicated,Category= Controller)
+	bool bIsJumping;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool bIsSprinting() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsInitiatedJump() const;
+
+	void SetIsJumping(bool NewJumping);
+
+	void OnJump();
+
+	void StopOnJump();
 
 protected:
 
@@ -71,5 +91,7 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	
 };
 

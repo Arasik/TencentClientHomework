@@ -8,6 +8,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/Character.h"
+#include "Kismet/KismetSystemLibrary.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // AHomework2_FPSCharacter
@@ -44,6 +47,8 @@ AHomework2_FPSCharacter::AHomework2_FPSCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+
+	bIsJumping = false;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -55,8 +60,9 @@ void AHomework2_FPSCharacter::SetupPlayerInputComponent(class UInputComponent* P
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	//PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AHomework2_FPSCharacter::OnJump);
 	//PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AHomework2_FPSCharacter::StopOnJump);
 	
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AHomework2_FPSCharacter::MoveForward);
@@ -80,6 +86,73 @@ void AHomework2_FPSCharacter::SetupPlayerInputComponent(class UInputComponent* P
 }
 
 
+FRotator AHomework2_FPSCharacter::GetAimOffsets() const
+{
+	const FVector AimDirWS = GetBaseAimRotation().Vector();
+	const FVector AimDirLS = ActorToWorld().InverseTransformVectorNoScale(AimDirWS);
+	const FRotator AimRotLS = AimDirLS.Rotation();
+
+	return AimRotLS;
+}
+
+bool AHomework2_FPSCharacter::bIsSprinting() const
+{
+	if (!GetCharacterMovement())
+	{
+		return false;
+	}
+	return !GetVelocity().IsZero() && (FVector::DotProduct(GetVelocity().GetSafeNormal2D(), GetActorRotation().Vector()) > 0.8);
+}
+
+bool AHomework2_FPSCharacter::IsInitiatedJump() const
+{
+	return bIsJumping;
+}
+
+void AHomework2_FPSCharacter::SetIsJumping(bool NewJumping)
+{
+
+	if (NewJumping != bIsJumping)
+	{
+		bIsJumping = NewJumping;
+
+		if (bIsJumping)
+		{
+			/* Perform the built-in Jump on the character */
+			Jump();
+		}
+	}
+
+
+
+}
+
+void AHomework2_FPSCharacter::OnJump()
+{
+	//UE_LOG(LogTemp, Warning, TEXT(bIsJumping));
+	bIsJumping = true;
+	//UE_LOG(LogTemp, Warning, TEXT(bIsJumping));
+	Jump();
+	//SetIsJumping(true);
+}
+
+void AHomework2_FPSCharacter::StopOnJump()
+{
+	bIsJumping = false;
+	StopJumping();
+	//SetIsJumping(false);
+}
+
+void AHomework2_FPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//	
+//	DOREPLIFETIME_CONDITION(AHomework2_FPSCharacter, bIsJumping, COND_SkipOwner);
+//
+//
+}
+
+
 void AHomework2_FPSCharacter::OnResetVR()
 {
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
@@ -96,6 +169,8 @@ void AHomework2_FPSCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVecto
 	if (bCanController)
 		StopJumping();
 }
+
+
 
 void AHomework2_FPSCharacter::TurnAtRate(float Rate)
 {
@@ -149,3 +224,5 @@ void AHomework2_FPSCharacter::MoveRight(float Value)
 		}
 	}
 }
+
+
