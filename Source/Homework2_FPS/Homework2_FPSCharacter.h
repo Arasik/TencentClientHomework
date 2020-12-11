@@ -31,7 +31,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Controller)
+	UPROPERTY(Replicated,EditAnywhere, BlueprintReadWrite, Category = Controller);
 	bool bCanController;
 
 	UFUNCTION(BlueprintCallable, Category = "Targeting")
